@@ -6,5 +6,7 @@ http://make3d.cs.cornell.edu/data.html
 https://www.a2d2.audi/a2d2/en/dataset.html  
 https://lightfield-analysis.uni-konstanz.de/  
 https://github.com/alexsax/taskonomy-sample-model-1   
-https://www.cityscapes-dataset.com/login/
+https://www.cityscapes-dataset.com/login/ 
+http://www.cvlibs.net/datasets/kitti/eval_depth_all.php 
+
 
