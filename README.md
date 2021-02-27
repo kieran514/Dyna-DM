@@ -8,7 +8,9 @@ https://lightfield-analysis.uni-konstanz.de/
 https://github.com/alexsax/taskonomy-sample-model-1   
 https://www.cityscapes-dataset.com/login/   
 http://www.cvlibs.net/datasets/kitti/eval_depth_all.php 
-![image7](https://user-images.githubusercontent.com/51883968/109390398-4e48ea00-7909-11eb-81cd-10f08d9c92b7.png)
+![image7](https://user-images.githubusercontent.com/51883968/109390398-4e48ea00-7909-11eb-81cd-10f08d9c92b7.png)    
+SLAM (Simultaneously Localization and Mapping)
+
 
 
 
