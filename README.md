@@ -20,3 +20,6 @@ http://pix3d.csail.mit.edu/
 https://shapenet.org/
 
 
+Good work with sematntics
+https://neptune.ai/blog/image-segmentation-in-2020
+
