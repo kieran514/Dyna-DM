@@ -1,6 +1,5 @@
 '''
-Seokju Lee
-
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/models/ObjPoseNet.py
 '''
 
 from __future__ import absolute_import, division, print_function

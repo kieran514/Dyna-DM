@@ -1,5 +1,5 @@
 '''
-Seokju Lee
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/models/DispResNet.py
 
 '''
 
