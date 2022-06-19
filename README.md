@@ -37,13 +37,13 @@ We use the datasets provided by Insta-DM.
 You can train the models on KITTI dataset by running :
 
 ```bash
-sh scripts/train_kt.sh
+bash scripts/train_kt.sh
 ```
 
 You can train the models on the Cityscape dataset by running :
 
 ```bash
-sh scripts/train_cs.sh
+bash scripts/train_cs.sh
 ```
 
 Location of data... `$TRAIN_SET`.
@@ -64,7 +64,7 @@ For the evaluation, it is required to download the [KITTI raw dataset](http://ww
 You can evaluate the models by running :
 
 ```bash
-sh scripts/run_eigen_test.sh
+bash scripts/run_eigen_test.sh
 ```
 
 Please indicate the location of the raw dataset with `$DATA_ROOT`, and the models with `$DISP_NET`.
@@ -78,10 +78,5 @@ Please indicate the location of the raw dataset with `$DATA_ROOT`, and the model
 
 
 ...more
-* [PWC-Net](https://github.com/NVlabs/PWC-Net/tree/master/Caffe) (CVPR 2018, optical flow for data pre-processing)
- 
-* [PyTorch-Sparse](https://github.com/rusty1s/pytorch_sparse) (PyTorch library for sparse tensor representation)
- 
-* [Depth from Video in the Wild](https://github.com/google-research/google-research/tree/master/depth_from_video_in_the_wild) (ICCV 2019, motion field representation)
 
  
