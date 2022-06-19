@@ -27,7 +27,7 @@ Install prerequisite packages listed in requirements.txt:
 pip3 install -r requirements.txt
 ```
 
-Also, ensure to install torch-scatter torch-sparse
+Also, ensure to install torch-scatter torch-sparse:
 ```bash
 pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
 ```
@@ -38,7 +38,7 @@ We use the datasets provided by [Insta-DM](https://github.com/SeokjuLee/Insta-DM
 
 ## Models
 
-Pretrained models for CityScape and KITTI+CityScape are provided here, where KITTI+CityScape is trained on both CityScape and KITTI and leads to the greatest depth estimations.
+Pretrained models for CityScape and KITTI+CityScape are provided [here](), where KITTI+CityScape is trained on both CityScape and KITTI and leads to the greatest depth estimations.
 
 ## Training
 
