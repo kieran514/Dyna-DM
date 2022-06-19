@@ -81,8 +81,7 @@ Please indicate the location of the raw dataset with `$DATA_ROOT`, and the model
 
 * [Struct2Depth](https://github.com/tensorflow/models/blob/archive/research/struct2depth) (AAAI 2019, object scale loss)
 
+* [SC-SfMLearner](https://github.com/JiawangBian/SC-SfMLearner-Release) (NeurIPS 2019, our baseline framework)
 
-
-...more
 
  
