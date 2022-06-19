@@ -1,5 +1,5 @@
 '''
-Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/rigid_warp.py
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/utils.py
 '''
 
 from __future__ import division
