@@ -6,6 +6,12 @@
  >[[PDF](https://arxiv.org/pdf/2206.03799.pdf)]
 
 
+<p align="center">
+  <img src="./misc/arch.png"/>
+</p>
+
+
+
 ## Install
 
 Our code is tested with CUDA 11.1, Python 3.7.x (conda environment), and PyTorch 1.4.0/1.7.0.
