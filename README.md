@@ -34,7 +34,7 @@ pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/tor
 
 ## Datasets
 
-We use the datasets provided by [Insta-DM](https://github.com/SeokjuLee/Insta-DM) and evaluate the model with the KITTI Eigen Split using the raw [KITTI dataset](http://www.cvlibs.net/download.php?file=raw_data_downloader.zip). 
+We use the datasets provided by [Insta-DM](https://github.com/SeokjuLee/Insta-DM) and evaluate the model with the [KITTI Eigen Split](https://arxiv.org/abs/1406.2283) using the raw [KITTI dataset](http://www.cvlibs.net/download.php?file=raw_data_downloader.zip). 
 
 ## Models
 
