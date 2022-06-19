@@ -1,9 +1,7 @@
 '''
-Seokju Lee
-
-# (+) customized inputs: images (src/tgt), segmentation mask (src/tgt), intrinsics
-
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/custom_transforms.py
 '''
+
 from __future__ import division
 import torch
 import random
