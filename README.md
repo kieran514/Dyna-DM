@@ -38,7 +38,7 @@ We use the datasets provided by [Insta-DM](https://github.com/SeokjuLee/Insta-DM
 
 ## Models
 
-Pretrained models for CityScape and KITTI+CityScape are provided [here](), where KITTI+CityScape is trained on both CityScape and KITTI and leads to the greatest depth estimations.
+Pretrained models for CityScape and KITTI+CityScape are provided [here](https://drive.google.com/drive/folders/1xY7n3kNhpoy1VM4ohmHYN1Oc_SVWwAWY?usp=sharing), where KITTI+CityScape is trained on both CityScape and KITTI and leads to the greatest depth estimations.
 
 ## Training
 
