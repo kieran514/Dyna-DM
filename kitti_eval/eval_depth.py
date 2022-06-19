@@ -1,6 +1,5 @@
 '''
-seokju Lee
-
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/kitti_eval/eval_depth.py
 '''
 
 from __future__ import division

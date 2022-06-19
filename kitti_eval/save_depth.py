@@ -1,5 +1,5 @@
 '''
-seokju Lee
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/kitti_eval/save_depth.py
 
 '''
 
