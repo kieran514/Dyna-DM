@@ -1,5 +1,5 @@
 '''
-Seokju Lee
+Reference: https://github.com/SeokjuLee/Insta-DM/blob/master/loss_functions.py
 '''
 
 from __future__ import division
