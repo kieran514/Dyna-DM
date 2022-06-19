@@ -52,7 +52,7 @@ You can train the models on the Cityscape dataset by running :
 bash scripts/train_cs.sh
 ```
 
-Location of data... `$TRAIN_SET`.
+`$TRAIN_SET` should be the directory to the dataset.
 
 The hyperparameters are defined in each script file and [default arguments](train.py) in `train.py`. 
 
