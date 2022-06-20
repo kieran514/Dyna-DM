@@ -29,7 +29,7 @@ pip3 install -r requirements.txt
 
 Also, ensure to install torch-scatter and torch-sparse:
 ```bash
-pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/torch-1.8.0+cu111.html
+pip3 install torch-scatter==2.0.8 torch-sparse==0.6.12 -f https://pytorch-geometric.com/whl/torch-1.8.0+cu111.html
 ```
 
 ## Datasets
