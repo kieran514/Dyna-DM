@@ -27,7 +27,7 @@ Install prerequisite packages listed in requirements.txt:
 pip3 install -r requirements.txt
 ```
 
-Also, ensure to install torch-scatter torch-sparse:
+Also, ensure to install torch-scatter and torch-sparse:
 ```bash
 pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
 ```
@@ -70,7 +70,7 @@ bash scripts/run_eigen_test.sh
 
 * [Struct2Depth](https://github.com/tensorflow/models/blob/archive/research/struct2depth) (AAAI 2019, object scale loss)
 
-* [SC-SfMLearner](https://github.com/JiawangBian/SC-SfMLearner-Release) (NeurIPS 2019, our baseline framework)
+* [SC-SfMLearner](https://github.com/JiawangBian/SC-SfMLearner-Release) (NeurIPS 2019)
 
 
  
