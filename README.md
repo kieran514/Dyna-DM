@@ -12,12 +12,12 @@
 
 ## Install
 
-The models were trained using CUDA 11.1, Python 3.7.x (conda environment), and PyTorch 1.7.0.
+The models were trained using CUDA 11.1, Python 3.7.x (conda environment), and PyTorch 1.8.0.
 
 Create a conda environment with the PyTorch library:
 
 ```bash
-conda create -n my_env python=3.7.4 pytorch=1.7.0 torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia
+conda create -n my_env python=3.7.4 pytorch=1.8.0 torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia
 conda activate my_env
 ```
 
@@ -29,7 +29,7 @@ pip3 install -r requirements.txt
 
 Also, ensure to install torch-scatter and torch-sparse:
 ```bash
-pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
+pip3 install torch-scatter torch-sparse -f https://pytorch-geometric.com/whl/torch-1.8.0+cu111.html
 ```
 
 ## Datasets
