@@ -34,7 +34,6 @@ from collections import OrderedDict
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 import pdb
-import wandb
 
 parser = argparse.ArgumentParser(description='Dyna-DM: Dynamic Object-aware Self-supervised Monocular Depth Maps',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -264,19 +263,9 @@ def main():
             if args.with_gt:
                 print("=> With GT")
                 errors, error_names = validate_with_gt(args, val_loader, disp_net, 0, logger)
-                wandb.log({error_names[0]: errors[0]})
-                wandb.log({error_names[1]: errors[1]})
-                wandb.log({error_names[2]: errors[2]})
-                wandb.log({error_names[3]: errors[3]})
-                wandb.log({error_names[4]: errors[4]})
-                wandb.log({error_names[5]: errors[5]})
             else:
                 print("=> Without GT")
                 errors, error_names = validate_without_gt(args, val_loader, disp_net, ego_pose_net, ego_pose_net_initial, obj_pose_net, 0, logger)
-                wandb.log({error_names[0]: errors[0]})
-                wandb.log({error_names[1]: errors[1]})
-                wandb.log({error_names[2]: errors[2]})
-                wandb.log({error_names[3]: errors[3]})
             for error, name in zip(errors, error_names):
                 tf_writer.add_scalar(name, error, 0)
             error_string = ', '.join('{} : {:.3f}'.format(name, error) for name, error in zip(error_names, errors))
@@ -300,18 +289,8 @@ def main():
         logger.reset_valid_bar()
         if args.with_gt:
             errors, error_names = validate_with_gt(args, val_loader, disp_net, epoch, logger)
-            wandb.log({error_names[0]: errors[0]})
-            wandb.log({error_names[1]: errors[1]})
-            wandb.log({error_names[2]: errors[2]})
-            wandb.log({error_names[3]: errors[3]})
-            wandb.log({error_names[4]: errors[4]})
-            wandb.log({error_names[5]: errors[5]})
         else:
             errors, error_names = validate_without_gt(args, val_loader, disp_net, ego_pose_net, ego_pose_net_initial, obj_pose_net, epoch, logger)
-            wandb.log({error_names[0]: errors[0]})
-            wandb.log({error_names[1]: errors[1]})
-            wandb.log({error_names[2]: errors[2]})
-            wandb.log({error_names[3]: errors[3]})
         error_string = ', '.join('{} : {:.3f}'.format(name, error) for name, error in zip(error_names, errors))
         logger.valid_writer.write(' * Avg {}'.format(error_string))
 
@@ -535,14 +514,6 @@ def train(args, train_loader, disp_net, ego_pose_net, ego_pose_net_initial, obj_
             tf_writer.add_scalar('height_loss', loss_6.item(), n_iter)
             tf_writer.add_scalar('depth_loss', loss_7.item(), n_iter)
             tf_writer.add_scalar('total_loss', loss.item(), n_iter)
-            wandb.log({"photo_loss": loss_1.item()})
-            wandb.log({"geometry_loss": loss_2.item()})
-            wandb.log({"smooth_loss": loss_3.item()})
-            wandb.log({"scale_loss": loss_4.item()})
-            wandb.log({"mof_consistency_loss": loss_5.item()})
-            wandb.log({"height_loss": loss_6.item()})
-            wandb.log({"depth_loss": loss_7.item()})
-            wandb.log({"total_loss": loss.item()})
 
         ### record loss ###
         losses.update(loss.item(), args.batch_size)
