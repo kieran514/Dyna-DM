@@ -2,7 +2,7 @@ DATA_ROOT=datasets/RAW/
 TEST_FILE=kitti_eval/test_files_eigen.txt
 RESULTS_DIR=outputs/eigen_test/
 PRED_FILE=outputs/eigen_test/predictions.npy
-DISP_NET=checkpoints/final_kt/03_05_17_29/dispnet_model_best.pth.tar
+DISP_NET=checkpoints/pretrained/CS+KITTI/resnet18_disp_cs+kt.tar
 
 ### (1) Predict depth and save results to "$RESULTS_DIR/predictions.npy" ###
 CUDA_VISIBLE_DEVICES=0 python ./kitti_eval/save_depth.py --img-height 256 --img-width 832 \
