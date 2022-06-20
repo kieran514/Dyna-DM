@@ -109,11 +109,6 @@ def main():
     global best_error, n_iter, device
     args = parser.parse_args()
 
-    if not args.debug_mode:
-        wandb.init(project='Test', entity='kieran514')
-        config = wandb.config
-        wandb.config.update(args)
-
 
     timestamp = datetime.datetime.now().strftime("%m_%d_%H_%M")
     if args.debug_mode:
