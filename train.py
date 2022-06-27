@@ -51,7 +51,7 @@ parser.add_argument('--padding-mode', type=str, choices=['zeros', 'border'], def
                          ' zeros will null gradients outside target image.'
                          ' border will only null gradients of the coordinate outside (x or y)')
 
-parser.add_argument('-j', '--workers', default=8, type=int, metavar='N', help='number of data loading workers')
+parser.add_argument('-j', '--workers', default=12, type=int, metavar='N', help='number of data loading workers')
 parser.add_argument('-b', '--batch-size', default=1, type=int, metavar='N', help='mini-batch size')
 parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs to run')
 parser.add_argument('--epoch-size', default=250, type=int, metavar='N', help='manual epoch size (will match dataset size if not set)')
@@ -107,7 +107,6 @@ def main():
 
     global best_error, n_iter, device
     args = parser.parse_args()
-
 
     timestamp = datetime.datetime.now().strftime("%m_%d_%H_%M")
     if args.debug_mode:
@@ -397,48 +396,7 @@ def train(args, train_loader, disp_net, ego_pose_net, ego_pose_net_initial, obj_
         w_img_cat, _, valid = forward_warp(img_cat, ref_depths[0].detach(), 2*ego_poses_bwd[0].detach(), intrinsics, upscale=3) # Extra distance is shown with 2*ego-motion 
         r2t_inst_ego_bwd = torch.cat([ref_insts[0][:,:1], w_img_cat[:,3:].round()], dim=1)
 
-        dyn_tgt_insts = []
-        dyn_ref_insts = []
-
-        r2t_inst_bwd = r2t_inst_ego_bwd.to(device) 
-
-        dice_01, _ = dice(r2t_inst_bwd, ref_insts[1], valid_mask=valid)
-        dice_01 = torch.nan_to_num(dice_01)
-        max_dice, index = torch.sort(dice_01, descending=True)
-
-        for n in range(len(ref_imgs)):
-            seg0 = ref_insts[n].to(device) 
-            seg1 = tgt_insts[n].to(device) 
-
-            n_inst = num_insts[n][0]
-
-            seg0_re = torch.zeros(args.dmni+1, seg0.shape[2], seg0.shape[3]).to(device) 
-            seg1_re = torch.zeros(args.dmni+1, seg1.shape[2], seg1.shape[3]).to(device) 
-            non_overlap_0 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
-            non_overlap_1 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
-
-            num_match = 0
-            for ch in range(n_inst+1):
-                distance = (ref_depths[0] * seg0[0,index[ch]]).mean()
-                condition2 = ((((seg0[0,index[ch]]).sum())/(seg0.shape[2] * seg0.shape[3])) *100) > args.objsmall #remove small objects
-                condition1 = (max_dice[ch] < args.maxtheta and max_dice[ch] > 0)
-                if condition1 and condition2 and (num_match < args.dmni): # dynamic!
-                    num_match += 1
-                    seg0_re[num_match] = seg0[0,index[ch]] * non_overlap_0
-                    seg1_re[num_match] = seg1[0,index[ch]] * non_overlap_1
-                    non_overlap_0 = non_overlap_0 * (1 - seg0_re[num_match])
-                    non_overlap_1 = non_overlap_1 * (1 - seg1_re[num_match])
-            seg0_re[0] = num_match
-            seg1_re[0] = num_match
-
-            if seg0_re[0].mean() != 0 and seg0_re[int(seg0_re[0].mean())].mean() == 0: pdb.set_trace()
-            if seg1_re[0].mean() != 0 and seg1_re[int(seg1_re[0].mean())].mean() == 0: pdb.set_trace()
-            
-            dyn_tgt_insts.append(seg1_re.unsqueeze(0))
-            dyn_ref_insts.append(seg0_re.unsqueeze(0)) 
-
-        tgt_insts = [img.to(device) for img in dyn_tgt_insts]
-        ref_insts = [img.to(device) for img in dyn_ref_insts]
+        tgt_insts, ref_insts = dynamic_objects(r2t_inst_ego_bwd, ref_insts, valid, ref_imgs, tgt_insts, num_insts, dmni=args.dmni, theta=args.maxtheta, obj_size=args.objsmall, bs=args.batch_size)
 
         tgt_bg_masks = [1 - (img[:,1:].sum(dim=1, keepdim=True)>0).float() for img in tgt_insts]
         ref_bg_masks = [1 - (img[:,1:].sum(dim=1, keepdim=True)>0).float() for img in ref_insts]
@@ -514,7 +472,6 @@ def train(args, train_loader, disp_net, ego_pose_net, ego_pose_net_initial, obj_
             tf_writer.add_scalar('height_loss', loss_6.item(), n_iter)
             tf_writer.add_scalar('depth_loss', loss_7.item(), n_iter)
             tf_writer.add_scalar('total_loss', loss.item(), n_iter)
-
         ### record loss ###
         losses.update(loss.item(), args.batch_size)
 
@@ -593,48 +550,7 @@ def validate_without_gt(args, val_loader, disp_net, ego_pose_net, ego_pose_net_i
         w_img_cat, _, valid = forward_warp(img_cat, ref_depths[0].detach(), 2*ego_poses_bwd[0].detach(), intrinsics, upscale=3)
         r2t_inst_ego_bwd = torch.cat([ref_insts[0][:,:1], w_img_cat[:,3:].round()], dim=1)
 
-        dyn_tgt_insts = []
-        dyn_ref_insts = []
-
-        r2t_inst_bwd = r2t_inst_ego_bwd.to(device) 
-
-        dice_01, _ = dice(r2t_inst_bwd, ref_insts[1], valid_mask=valid)
-        dice_01 = torch.nan_to_num(dice_01)
-        max_dice, index = torch.sort(dice_01, descending=True)
-
-        for n in range(len(ref_imgs)): # length is 2
-            seg0 = ref_insts[n].to(device) # its origionally [img1, img2]
-            seg1 = tgt_insts[n].to(device) 
-
-            n_inst = num_insts[n][0]
-
-            seg0_re = torch.zeros(args.dmni+1, seg0.shape[2], seg0.shape[3]).to(device) 
-            seg1_re = torch.zeros(args.dmni+1, seg1.shape[2], seg1.shape[3]).to(device) 
-            non_overlap_0 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
-            non_overlap_1 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
-
-            num_match = 0
-            for ch in range(n_inst+1):
-                # distance = (ref_depths[0] * seg0[0,index[ch]]).mean()
-                condition2 = ((((seg0[0,index[ch]]).sum())/(seg0.shape[2] * seg0.shape[3])) *100) > args.objsmall #greater than percent of the image
-                condition1 = (max_dice[ch] < args.maxtheta and max_dice[ch] > 0)
-                if condition1 and condition2 and (num_match < args.dmni): # dynamic!
-                    num_match += 1
-                    seg0_re[num_match] = seg0[0,index[ch]] * non_overlap_0
-                    seg1_re[num_match] = seg1[0,index[ch]] * non_overlap_1
-                    non_overlap_0 = non_overlap_0 * (1 - seg0_re[num_match])
-                    non_overlap_1 = non_overlap_1 * (1 - seg1_re[num_match])
-            seg0_re[0] = num_match
-            seg1_re[0] = num_match
-
-            if seg0_re[0].mean() != 0 and seg0_re[int(seg0_re[0].mean())].mean() == 0: pdb.set_trace()
-            if seg1_re[0].mean() != 0 and seg1_re[int(seg1_re[0].mean())].mean() == 0: pdb.set_trace()
-            
-            dyn_tgt_insts.append(seg1_re.unsqueeze(0))
-            dyn_ref_insts.append(seg0_re.unsqueeze(0)) 
-
-        tgt_insts = [img.to(device) for img in dyn_tgt_insts]
-        ref_insts = [img.to(device) for img in dyn_ref_insts]
+        tgt_insts, ref_insts = dynamic_objects(r2t_inst_ego_bwd, ref_insts, valid, ref_imgs, tgt_insts, num_insts, dmni=args.dmni, theta=args.maxtheta, obj_size=args.objsmall, bs=args.batch_size)
 
         tgt_bg_masks = [1 - (img[:,1:].sum(dim=1, keepdim=True)>0).float() for img in tgt_insts]
         ref_bg_masks = [1 - (img[:,1:].sum(dim=1, keepdim=True)>0).float() for img in ref_insts]
@@ -742,8 +658,6 @@ def validate_with_gt(args, val_loader, disp_net, epoch, logger):
 
     return errors.avg, error_names
 
-
-
 ################################################################################################################################################################################
 
 def inst_iou(seg_src, seg_tgt, valid_mask):
@@ -821,17 +735,6 @@ def compute_ego_pose_with_inv(pose_net, tgt_imgs, ref_imgs):
 
 
 def compute_ego_warp(imgs, insts, depths, poses, intrinsics, is_detach=True):
-    '''
-        Args:
-            imgs:       [[B, 3, 256, 832], [B, 3, 256, 832]]
-            insts:      [[B, 3, 256, 832], [B, 3, 256, 832]]
-            depths:     [[B, 1, 256, 832], [B, 1, 256, 832]]
-            poses:      [[B, 6], [B, 6]]
-            intrinsics: [B, 3, 3]
-        Returns:
-            w_imgs:     [[B, 3, 256, 832], [B, 3, 256, 832]]
-            w_vals:     [[B, 1, 256, 832], [B, 1, 256, 832]]
-    '''
     w_imgs, w_insts, w_depths, w_vals = [], [], [], []
     for img, inst, depth, pose in zip(imgs, insts, depths, poses):
         img_cat = torch.cat([img, inst[:,1:]], dim=1)
@@ -848,31 +751,6 @@ def compute_ego_warp(imgs, insts, depths, poses, intrinsics, is_detach=True):
 
 
 def compute_obj_pose_with_inv(pose_net,   tgtI, tgtMs, r2tIs, r2tMs,   refIs, refMs, t2rIs, t2rMs,   intrinsics, dmni, num_insts):
-    '''
-        Args:
-            ------------------------------------------------
-            tgtI:  [B, 3, 256, 832]
-            tgtMs: [[B, 1+N, 256, 832], [B, 1+N, 256, 832]]
-            r2tIs: [[B, 3, 256, 832], [B, 3, 256, 832]]
-            r2tMs: [[B, 1+N, 256, 832], [B, 1+N, 256, 832]]
-            ------------------------------------------------
-            refIs: [[B, 3, 256, 832], [B, 3, 256, 832]]
-            refMs: [[B, 1+N, 256, 832], [B, 1+N, 256, 832]]
-            t2rIs: [[B, 3, 256, 832], [B, 3, 256, 832]]
-            t2rMs: [[B, 1+N, 256, 832], [B, 1+N, 256, 832]]
-            ------------------------------------------------
-            intrinsics: [B, 3, 3]
-            num_insts:  [[n1, n2, ...], [n1', n2', ...]]
-        Returns:
-            "Only translations (tx, ty, tz) are estimated!"
-            obj_poses_fwd: [[B, N, 3], [B, N, 3]]
-            obj_poses_bwd: [[B, N, 3], [B, N, 3]]
-        
-        plt.close('all')
-        bb = 0
-        plt.figure(1); plt.imshow(tgtI.detach().cpu()[bb,0]); plt.colorbar(); plt.ion(); plt.show();
-
-    '''
     bs, _, hh, ww = tgtI.size()
 
     obj_poses_fwd, obj_poses_bwd = [], []
@@ -913,23 +791,6 @@ def compute_obj_pose_with_inv(pose_net,   tgtI, tgtMs, r2tIs, r2tMs,   refIs, re
 
 
 def compute_motion_field(tgt_img, ego_poses_fwd, ego_poses_bwd, obj_poses_fwd, obj_poses_bwd, tgt_insts, ref_insts):
-    '''
-        Args:
-            ego_poses_fwd: [torch.Size([B, 6]), torch.Size([B, 6])]
-            ego_poses_bwd: [torch.Size([B, 6]), torch.Size([B, 6])]
-            obj_poses_fwd: [torch.Size([B, N, 6]), torch.Size([B, N, 6])]
-            obj_poses_bwd: [torch.Size([B, N, 6]), torch.Size([B, N, 6])]
-            tgt_insts: [torch.Size([B, 1+N, 256, 832]), torch.Size([B, 1+N, 256, 832])]
-            ref_insts: [torch.Size([B, 1+N, 256, 832]), torch.Size([B, 1+N, 256, 832])]
-        Returns:
-            MFs_fwd: [ ([B, 6, 256, 832]), ([B, 6, 256, 832]) ]
-            MFs_bwd: [ ([B, 6, 256, 832]), ([B, 6, 256, 832]) ]
-
-        plt.close('all')
-        bb = 0; su = 2;
-        plt.figure(1); plt.imshow(obj_MF_fwd.sum(dim=1, keepdim=False)[bb,su].detach().cpu()); plt.colorbar(); plt.ion(); plt.show()
-
-    '''
     bs, _, hh, ww = tgt_img.size()
     MFs_fwd, MFs_bwd = [], []   # [ ([B, 6, 256, 832]), ([B, 6, 256, 832]) ]
 
@@ -966,6 +827,88 @@ def save_image(data, cm, fn, vmin=None, vmax=None):
     ax.imshow(data, cmap=cm, vmin=vmin, vmax=vmax)
     plt.savefig(fn, dpi = height) 
     plt.close()
+
+def dynamic_objects(r2t_inst_ego_bwd, ref_insts, valid, ref_imgs, tgt_insts, num_insts, dmni, theta, obj_size, bs):
+    r2t_inst_bwd = r2t_inst_ego_bwd.to(device) 
+    batch_dyn_tgt = []
+    batch_dyn_ref = []
+    if bs > 1:
+        for j in range(bs):
+            dyn_tgt_insts = torch.tensor([]).to(device)
+            dyn_ref_insts = torch.tensor([]).to(device)
+            r2t_inst_bwd_ = r2t_inst_bwd[j,:].unsqueeze(0)
+            dice_01, _ = dice(r2t_inst_bwd_, ref_insts[1][j,:].unsqueeze(0), valid_mask=valid[j,:].unsqueeze(0))
+            dice_01 = torch.nan_to_num(dice_01)
+            max_dice, index = torch.sort(dice_01, descending=True)
+
+            for n in range(len(ref_imgs)):
+                seg0 = ref_insts[n][j,:].unsqueeze(0).to(device) 
+                seg1 = tgt_insts[n][j,:].unsqueeze(0).to(device) 
+                n_inst = num_insts[n][j]
+
+                seg0_re = torch.zeros(dmni+1, seg0.shape[2], seg0.shape[3]).to(device) 
+                seg1_re = torch.zeros(dmni+1, seg1.shape[2], seg1.shape[3]).to(device) 
+                non_overlap_0 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
+                non_overlap_1 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
+
+                num_match = 0
+                for ch in range(n_inst+1):
+                    condition2 = ((((seg0[0,index[ch]]).sum())/(seg0.shape[2] * seg0.shape[3])) *100) > obj_size #remove small objects
+                    condition1 = (max_dice[ch] < theta and max_dice[ch] > 0)
+                    if condition1 and condition2 and (num_match < dmni): # dynamic!
+                        num_match += 1
+                        seg0_re[num_match] = seg0[0,index[ch]] * non_overlap_0
+                        seg1_re[num_match] = seg1[0,index[ch]] * non_overlap_1
+                        non_overlap_0 = non_overlap_0 * (1 - seg0_re[num_match])
+                        non_overlap_1 = non_overlap_1 * (1 - seg1_re[num_match])
+                        seg0_re[0] = num_match
+                        seg1_re[0] = num_match
+
+                if seg0_re[0].mean() != 0 and seg0_re[int(seg0_re[0].mean())].mean() == 0: pdb.set_trace()
+                if seg1_re[0].mean() != 0 and seg1_re[int(seg1_re[0].mean())].mean() == 0: pdb.set_trace()
+
+                dyn_tgt_insts = torch.cat((dyn_tgt_insts, seg1_re.unsqueeze(0)), 0)
+                dyn_ref_insts = torch.cat((dyn_ref_insts, seg0_re.unsqueeze(0)), 0) 
+            batch_dyn_tgt.append(dyn_tgt_insts)
+            batch_dyn_ref.append(dyn_ref_insts)
+    else:
+        dice_01, _ = dice(r2t_inst_bwd, ref_insts[1], valid_mask=valid)
+        dice_01 = torch.nan_to_num(dice_01)
+        max_dice, index = torch.sort(dice_01, descending=True)
+
+        for n in range(len(ref_imgs)): # length is 2
+            seg0 = ref_insts[n].to(device) # its origionally [img1, img2]
+            seg1 = tgt_insts[n].to(device) 
+
+            n_inst = num_insts[n][0]
+
+            seg0_re = torch.zeros(dmni+1, seg0.shape[2], seg0.shape[3]).to(device) 
+            seg1_re = torch.zeros(dmni+1, seg1.shape[2], seg1.shape[3]).to(device) 
+            non_overlap_0 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
+            non_overlap_1 = torch.ones([seg0.shape[2], seg0.shape[3]]).to(device) 
+
+            num_match = 0
+            for ch in range(n_inst+1):
+                # distance = (ref_depths[0] * seg0[0,index[ch]]).mean()
+                condition2 = ((((seg0[0,index[ch]]).sum())/(seg0.shape[2] * seg0.shape[3])) *100) > obj_size #greater than percent of the image
+                condition1 = (max_dice[ch] < theta and max_dice[ch] > 0)
+                if condition1 and condition2 and (num_match < dmni): # dynamic!
+                    num_match += 1
+                    seg0_re[num_match] = seg0[0,index[ch]] * non_overlap_0
+                    seg1_re[num_match] = seg1[0,index[ch]] * non_overlap_1
+                    non_overlap_0 = non_overlap_0 * (1 - seg0_re[num_match])
+                    non_overlap_1 = non_overlap_1 * (1 - seg1_re[num_match])
+            seg0_re[0] = num_match
+            seg1_re[0] = num_match
+
+            if seg0_re[0].mean() != 0 and seg0_re[int(seg0_re[0].mean())].mean() == 0: pdb.set_trace()
+            if seg1_re[0].mean() != 0 and seg1_re[int(seg1_re[0].mean())].mean() == 0: pdb.set_trace()
+            
+            batch_dyn_tgt.append(seg1_re.unsqueeze(0))
+            batch_dyn_ref.append(seg0_re.unsqueeze(0)) 
+    tgt_insts = [img.to(device) for img in batch_dyn_tgt]
+    ref_insts = [img.to(device) for img in batch_dyn_ref]
+    return tgt_insts, ref_insts
 
 
 if __name__ == '__main__':
